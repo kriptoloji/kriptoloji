@@ -1,0 +1,108 @@
+- 👋 Hi, I’m @kriptoloji
+- 👀 I’m interested in ...
+- 🌱 I’m currently learning ...
+- 💞️ I’m looking to collaborate on ...
+- 📫 How to reach me ...
+
+<!---
+kriptoloji/kriptoloji is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+You can click the Preview link to take a look at your changes.
+--->
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+import random
+import pygame
+
+# Sesleri başlat
+pygame.mixer.init()
+dogru_ses = pygame.mixer.Sound("dogru.wav")
+yanlis_ses = pygame.mixer.Sound("yanlis.wav")
+
+class SayiTahminArayuz:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("🐶 Sayı Tahmin Oyunu")
+
+        # Temalar
+        self.temalar = {
+            "Açık Mavi": {"bg": "#d0e6f7", "fg": "#003366", "buton": "#3399ff"},
+            "Koyu Mavi": {"bg": "#1a1f2b", "fg": "#ffffff", "buton": "#3355aa"},
+        }
+        self.tema_adi = tk.StringVar(value="Açık Mavi")
+
+        self.tutulan_sayi = random.randint(1, 100)
+        self.tahmin_sayisi = 0
+
+        self.arayuz_olustur()
+        self.temayi_uygula()
+
+    def arayuz_olustur(self):
+        # Arka plan resmi
+        self.bg_image = Image.open("/mnt/data/samlido3.jpeg")
+        self.bg_image = self.bg_image.resize((600, 400))
+        self.bg_photo = ImageTk.PhotoImage(self.bg_image)
+
+        self.bg_label = tk.Label(self.root, image=self.bg_photo)
+        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        self.tema_menu = ttk.Combobox(self.root, values=list(self.temalar.keys()), textvariable=self.tema_adi)
+        self.tema_menu.place(x=20, y=20)
+        self.tema_menu.bind("<<ComboboxSelected>>", lambda e: self.temayi_uygula())
+
+        self.etiket = tk.Label(self.root, text="1-100 arası sayı tuttum. Tahmin et bakalım!")
+        self.etiket.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.entry = tk.Entry(self.root, font=("Arial", 14), width=10, justify="center")
+        self.entry.place(relx=0.5, rely=0.3, anchor="center")
+
+        self.tahmin_btn = tk.Button(self.root, text="Tahmin Et", command=self.tahmin_et)
+        self.tahmin_btn.place(relx=0.5, rely=0.4, anchor="center")
+
+        self.sonuc = tk.Label(self.root, text="", font=("Arial", 12))
+        self.sonuc.place(relx=0.5, rely=0.5, anchor="center")
+
+        self.yeniden_btn = tk.Button(self.root, text="Yeniden Başlat", command=self.yeniden_baslat, state=tk.DISABLED)
+        self.yeniden_btn.place(relx=0.5, rely=0.6, anchor="center")
+
+    def temayi_uygula(self):
+        tema = self.temalar[self.tema_adi.get()]
+        self.root.configure(bg=tema["bg"])
+        for widget in [self.etiket, self.sonuc]:
+            widget.configure(bg=tema["bg"], fg=tema["fg"])
+        for btn in [self.tahmin_btn, self.yeniden_btn]:
+            btn.configure(bg=tema["buton"], fg="white", activebackground=tema["fg"])
+
+    def tahmin_et(self):
+        try:
+            tahmin = int(self.entry.get())
+            self.tahmin_sayisi += 1
+
+            if tahmin < self.tutulan_sayi:
+                self.sonuc.config(text="Daha büyük bir sayı dene.")
+                yanlis_ses.play()
+            elif tahmin > self.tutulan_sayi:
+                self.sonuc.config(text="Daha küçük bir sayı dene.")
+                yanlis_ses.play()
+            else:
+                self.sonuc.config(text=f"🎉 {self.tahmin_sayisi} denemede doğru bildin!")
+                dogru_ses.play()
+                self.tahmin_btn.config(state=tk.DISABLED)
+                self.yeniden_btn.config(state=tk.NORMAL)
+        except ValueError:
+            self.sonuc.config(text="Lütfen geçerli bir sayı gir.")
+            yanlis_ses.play()
+
+    def yeniden_baslat(self):
+        self.tutulan_sayi = random.randint(1, 100)
+        self.tahmin_sayisi = 0
+        self.entry.delete(0, tk.END)
+        self.sonuc.config(text="")
+        self.tahmin_btn.config(state=tk.NORMAL)
+        self.yeniden_btn.config(state=tk.DISABLED)
+
+# Pencere ayarları
+root = tk.Tk()
+root.geometry("600x400")
+uygulama = SayiTahminArayuz(root)
+root.mainloop()
